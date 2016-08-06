@@ -1,9 +1,10 @@
 package com.coolweather.app.activity;
 
-import android.app.Activity;
 import android.app.ProgressDialog;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.widget.AdapterView;
@@ -27,7 +28,7 @@ import java.util.List;
 /**
  * Created by Administrator on 2016/8/5.
  */
-public class ChooesAreaActivity extends Activity {
+public class ChooesAreaActivity extends AppCompatActivity {
 
     public static final int LEVEL_PROVINCE = 0;
     public static final int LEVEL_CITY = 1;
@@ -177,6 +178,7 @@ public class ChooesAreaActivity extends Activity {
                 if ("province".equals(type)) {
                     result = Utility.handleProvinceResponse(coolWeatherDB, response);
                 } else if ("city".equals(type)) {
+                    Log.d("ChooesAreaActivity", "handleCityResponse");
                     result = Utility.handleCityResponse(coolWeatherDB, response,
                             selectedProvince.getId());
                 }else if ("county".equals(type)) {
@@ -198,6 +200,9 @@ public class ChooesAreaActivity extends Activity {
                             }
                         }
                     });
+                } else {
+                    System.out.println("result=false");
+                    Log.d("ChooseAreaActivity", "result=false");
                 }
             }
 
