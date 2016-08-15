@@ -7,7 +7,6 @@ import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.widget.AdapterView;
@@ -31,7 +30,7 @@ import java.util.List;
 /**
  * Created by Administrator on 2016/8/5.
  */
-public class ChooesAreaActivity extends AppCompatActivity {
+public class ChooseAreaActivity extends AppCompatActivity {
 
     public static final int LEVEL_PROVINCE = 0;
     public static final int LEVEL_CITY = 1;
@@ -74,57 +73,56 @@ public class ChooesAreaActivity extends AppCompatActivity {
      *当前选中的级别
      */
     private int currentLevel;
-
+    /**
+     * 是否从WeatherActivity中跳转过来。
+     */
     private boolean isFromWeatherActivity;
 
-
-
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        isFromWeatherActivity = getIntent().getBooleanExtra("from_weather_activity", false);
-        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
-        //已经选择了城市且不是从WeatherActivity跳转过来，，才会直接跳转到WeatherActivity
-        if (prefs.getBoolean("city_selected", false) && !isFromWeatherActivity) {
-            Intent intent = new Intent(this, WeatherActivity.class);
-            startActivity(intent);
-            finish();
-            return;
-        }
-        requestWindowFeature(Window.FEATURE_NO_TITLE);
-        setContentView(R.layout.choose_area);
-        listView = (ListView) findViewById(R.id.list_view);
-        titleText = (TextView) findViewById(R.id.title_text);
-        adapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, dataList);
-        listView.setAdapter(adapter);
-        coolWeatherDB = CoolWeatherDB.getInstance(this);
-        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                if (currentLevel == LEVEL_PROVINCE) {
-                    selectedProvince = provinceList.get(i);
-                    queryCities();
-                } else if (currentLevel == LEVEL_CITY) {
-                    selectedCity = cityList.get(i);
-                    queryCounties();
-                } else if (currentLevel == LEVEL_COUNTY) {
-                    String countyCode = countyList.get(i).getCountyCode();
-                    Intent intent = new Intent(ChooesAreaActivity.this, WeatherActivity.class);
-                    intent.putExtra("county_code", countyCode);
-                    startActivity(intent);
-                    finish();
-                }
-            }
-        });
-        queryProvinces();//加载省级数据
-    }
+	@Override
+	protected void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		isFromWeatherActivity = getIntent().getBooleanExtra("from_weather_activity", false);
+		SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+		if (prefs.getBoolean("city_selected", false) && !isFromWeatherActivity) {
+			Intent intent = new Intent(this, WeatherActivity.class);
+			startActivity(intent);
+			finish();
+			return;
+		}
+		requestWindowFeature(Window.FEATURE_NO_TITLE);
+		setContentView(R.layout.choose_area);
+		listView = (ListView) findViewById(R.id.list_view);
+		titleText = (TextView) findViewById(R.id.title_text);
+		adapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, dataList);
+		listView.setAdapter(adapter);
+		coolWeatherDB = CoolWeatherDB.getInstance(this);
+		listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+			@Override
+			public void onItemClick(AdapterView<?> arg0, View view, int index,
+					long arg3) {
+				if (currentLevel == LEVEL_PROVINCE) {
+					selectedProvince = provinceList.get(index);
+					queryCities();
+				} else if (currentLevel == LEVEL_CITY) {
+					selectedCity = cityList.get(index);
+					queryCounties();
+				} else if (currentLevel == LEVEL_COUNTY) {
+					String countyCode = countyList.get(index).getCountyCode();
+					Intent intent = new Intent(ChooseAreaActivity.this, WeatherActivity.class);
+					intent.putExtra("county_code", countyCode);
+					startActivity(intent);
+					finish();
+				}
+			}
+		});
+		queryProvinces();  // 加载省级数据
+	}
 
     /**
      * 查询全国所有的省，优先从数据库查询，如果没有再去服务器上查询
      */
     private void queryProvinces() {
-        provinceList = coolWeatherDB.loadProvince();
+        provinceList = coolWeatherDB.loadProvinces();
         if (provinceList.size() > 0) {
             dataList.clear();
             for (Province province : provinceList) {
@@ -196,13 +194,13 @@ public class ChooesAreaActivity extends AppCompatActivity {
             public void onFinish(String response) {
                 boolean result = false;
                 if ("province".equals(type)) {
-                    result = Utility.handleProvinceResponse(coolWeatherDB, response);
+                    result = Utility.handleProvincesResponse(coolWeatherDB, response);
                 } else if ("city".equals(type)) {
-//                    Log.d("ChooesAreaActivity", "handleCityResponse");
-                    result = Utility.handleCityResponse(coolWeatherDB, response,
+//                    Log.d("ChooseAreaActivity", "handleCityResponse");
+                    result = Utility.handleCitiesResponse(coolWeatherDB, response,
                             selectedProvince.getId());
                 }else if ("county".equals(type)) {
-                    result = Utility.handleCountyResponse(coolWeatherDB, response,
+                    result = Utility.handleCountiesResponse(coolWeatherDB, response,
                             selectedCity.getId());
                 }
                 if (result) {
@@ -233,7 +231,7 @@ public class ChooesAreaActivity extends AppCompatActivity {
                     @Override
                     public void run() {
                         closeProgressDialog();
-                        Toast.makeText(ChooesAreaActivity.this, "加载失败",
+                        Toast.makeText(ChooseAreaActivity.this, "加载失败",
                                 Toast.LENGTH_SHORT).show();
                     }
                 });

@@ -6,11 +6,10 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
-/**
- * Created by Administrator on 2016/8/5.
- */
 public class HttpUtil {
-    public static  void sendHttpRequest(final String address, final HttpCallbackListener listener) {
+
+    public static  void sendHttpRequest(final String address,
+                                        final HttpCallbackListener listener) {
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -19,10 +18,11 @@ public class HttpUtil {
                     URL url = new URL(address);
                     connection = (HttpURLConnection) url.openConnection();
                     connection.setRequestMethod("GET");
-                    connection.setConnectTimeout(5000);
-                    connection.setReadTimeout(5000);
+                    connection.setConnectTimeout(8000);
+                    connection.setReadTimeout(8000);
+                    connection.connect();
                     InputStream in = connection.getInputStream();
-                    BufferedReader reader = new BufferedReader(new InputStreamReader(in));
+                    BufferedReader reader = new BufferedReader(new InputStreamReader(in, "UTF-8"));
                     StringBuilder response = new StringBuilder();
                     String line;
                     while ((line = reader.readLine()) != null) {
@@ -33,13 +33,14 @@ public class HttpUtil {
                         listener.onFinish(response.toString());
                     }
                 } catch (Exception e) {
-                    //回调onError()方法
-                    listener.onError(e);
+                    if (listener != null) {
+                        //回调onError()方法
+                        listener.onError(e);
+                    }
                 }finally {
                     if (connection != null) {
                         connection.disconnect();
                     }
-
                 }
             }
         }).start();
